@@ -1,0 +1,20 @@
+{
+    "name": "kurniawan/pos-425",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Kurniawan Pratama",
+            "email": "kurama.career@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "bramus/router": "~1.6"
+    }
+}
