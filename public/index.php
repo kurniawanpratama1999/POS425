@@ -2,6 +2,7 @@
 require __DIR__ . '/../vendor/autoload.php';
 
 use App\Pages\Layouts\Dashboard;
+use App\Pages\Views\NotFound404;
 use Bramus\Router\Router;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['_METHOD_'])) {
@@ -17,9 +18,7 @@ $router->mount('/dashboard', function () use ($router) {
     }
 });
 
-$router->set404(function () {
-    echo Dashboard::get("<p>NOTFOUND</p>", 'Not Found');
-});
+$router->set404([new NotFound404(), "render"]);
 
 
 $router->run();

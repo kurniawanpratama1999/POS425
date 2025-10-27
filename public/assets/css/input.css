@@ -4,7 +4,7 @@
 
 @import "tailwindcss";
 
-/* npx @tailwindcss/cli/dist -i ./public/assets/css/input.css -o ./public/assets/css/output.css --watch */
+/* npx @tailwindcss/cli -i ./public/assets/css/input.css -o ./public/assets/css/output.css --watch */
 
 @layer base {
     @font-face {

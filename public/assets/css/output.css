@@ -201,9 +201,6 @@
   .fixed {
     position: fixed;
   }
-  .relative {
-    position: relative;
-  }
   .static {
     position: static;
   }
@@ -218,24 +215,6 @@
   }
   .left-1\/2 {
     left: calc(1/2 * 100%);
-  }
-  .container {
-    width: 100%;
-    @media (width >= 40rem) {
-      max-width: 40rem;
-    }
-    @media (width >= 48rem) {
-      max-width: 48rem;
-    }
-    @media (width >= 64rem) {
-      max-width: 64rem;
-    }
-    @media (width >= 80rem) {
-      max-width: 80rem;
-    }
-    @media (width >= 96rem) {
-      max-width: 96rem;
-    }
   }
   .mr-auto {
     margin-right: auto;
@@ -255,8 +234,14 @@
   .h-12 {
     height: calc(var(--spacing) * 12);
   }
+  .h-\[calc\(100dvh-3rem\)\] {
+    height: calc(100dvh - 3rem);
+  }
   .h-\[calc\(100dvh-4rem\)\] {
     height: calc(100dvh - 4rem);
+  }
+  .h-dvh {
+    height: 100dvh;
   }
   .h-fit {
     height: fit-content;
