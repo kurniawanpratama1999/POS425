@@ -1,3 +1,160 @@
 @import "tailwindcss";
 
-/* npx @tailwindcss/cli -i ./public/assets/css/input.css -o ./public/assets/css/output.css --watch */
+/* npx @tailwindcss/cli/dist -i ./public/assets/css/input.css -o ./public/assets/css/output.css --watch */
+
+@layer base {
+    @font-face {
+      font-family: 'Poppins';
+      src: url('/assets/font/Poppins/Poppins-Regular.ttf') format('truetype');
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'Poppins';
+      src: url('/assets/font/Poppins/Poppins-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'Poppins';
+      src: url('/assets/font/Poppins/Poppins-Italic.ttf') format('truetype');
+      font-weight: 500;
+      font-style: italic;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Montserrat Alternates';
+      src: url('/assets/font/Montserrat_Alternates/MontserratAlternates-Regular.ttf') format('truetype');
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'Montserrat Alternates';
+      src: url('/assets/font/Montserrat_Alternates/MontserratAlternates-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'Montserrat Alternates';
+      src: url('/assets/font/Montserrat_Alternates/MontserratAlternates-Italic.ttf') format('truetype');
+      font-weight: 500;
+      font-style: italic;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'JetBrains Mono';
+      src: url('/assets/font/JetBrains/JetBrainsMono-Regular.ttf') format('truetype');
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'JetBrains Mono';
+      src: url('/assets/font/JetBrains/JetBrainsMono-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'JetBrains Mono';
+      src: url('/assets/font/JetBrains/JetBrainsMono-Italic.ttf') format('truetype');
+      font-weight: 500;
+      font-style: italic;
+      font-display: swap;
+    }
+}
+
+@theme {
+    --font-sans: "Poppins", sans-serif;
+    --font-serif: "Montserrat Alternates", sans-serif;
+    --font-mono: "JetBrains Mono", monospace;
+}
+
+tr:first-child{
+    @apply bg-slate-100 text-black font-mono italic;
+}
+
+th {
+    @apply px-3 py-2
+}
+
+tr:not(:first-child) {
+    @apply hover:bg-slate-100 transition-[background] border-b border-slate-200;
+}
+
+td {
+    @apply px-3 py-2;
+}
+
+td:last-child{
+    @apply px-0
+}
+
+td:last-child div {
+    @apply flex flex-row gap-3;
+
+    & .wrapper-button button, & .wrapper-button a {
+        @apply border w-[80px] py-1 text-center;
+    }
+}
+
+form#add-and-update{
+    @apply w-fit flex flex-col gap-3 shadow-xl shadow-black/20 p-3 bg-white rounded;
+
+    & label {
+        @apply flex flex-col border p-2 rounded border-slate-300 has-focus:border-slate-500 has-focus:[&_span]:text-black;
+
+        & span {
+            @apply text-sm italic text-neutral-600;
+        }
+
+        & span small {
+            @apply text-red-500;
+        }
+
+        input {
+            @apply pl-4 pr-2 py-1 outline-0 border-0; 
+        }
+    }
+
+
+    & .wrapper-button {
+        @apply grid grid-cols-2 gap-3 text-center;
+
+        & button, & a {
+            @apply py-2 rounded
+        }
+    }
+}
+
+td div[id^="edit-and-delete"] {
+    @apply flex flex-row gap-2 justify-center;
+
+    & button, & a {
+        @apply w-[80px] text-center py-2 rounded;
+    }
+
+    & form[id^="button-delete"] button, & a[id^="button-delete"] {
+        @apply bg-red-200;
+    }
+
+    & button[id^="button-edit"], & a[id^="button-edit"] {
+        @apply bg-blue-200; 
+    }
+}
+
+#button-new {
+    @apply px-3 py-2 rounded bg-emerald-300 text-white
+}
