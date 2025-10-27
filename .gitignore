@@ -21,7 +21,7 @@ pnpm-lock.yaml
 dist/
 build/
 public/build/
-public/assets/
+public/ProductImage/
 
 # =====================================
 # Environment & konfigurasi sensitif
