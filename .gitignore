@@ -22,6 +22,7 @@ dist/
 build/
 public/build/
 public/ProductImage/
+*/public/ProductImage/
 
 # =====================================
 # Environment & konfigurasi sensitif
