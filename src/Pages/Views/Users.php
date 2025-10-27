@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Pages\Views;
+
 use App\Config\Database;
 use App\Pages\Layouts\Dashboard;
 use App\Utils\Message;
@@ -19,16 +21,15 @@ use App\Utils\Message;
 
     private function getUserRolesCols()
     {
-        $style = "border: 1px solid black; padding:5px 10px;";
         return "
-        <tr>
-            <th style='$style text-align:left;'>row</th>
-            <th style='$style text-align:left;'>name</th>
-            <th style='$style text-align:left;'>role name</th>
-            <th style='$style text-align:left;'>email</th>
-            <th style='$style text-align:left;'>created at</th>
-            <th style='$style text-align:left;'>updated at</th>
-            <th style='$style text-align:center;'>actions</th>
+        <tr class='[&_th]:border [&_th]:px-1.5 [&_th]:py-3 bg-emerald-200'>
+            <th>row</th>
+            <th>name</th>
+            <th>role name</th>
+            <th>email</th>
+            <th>created at</th>
+            <th>updated at</th>
+            <th>actions</th>
         </tr>
         ";
     }
@@ -78,7 +79,7 @@ use App\Utils\Message;
         <!-- EDIT -->
         <a href="/dashboard/users/q/<?= $id ?>">EDIT</a>
 
-        <?php
+    <?php
         return ob_get_clean();
     }
 
@@ -104,47 +105,50 @@ use App\Utils\Message;
 
         $message = Message::get();
         ob_start() ?>
-        <div>
+        <div class="">
             <section>
                 <?php if ($message): ?>
-                    <span id="message"
-                        style="color: <?= $message['success'] ? "green" : "red" ?>; font-weight: bold;"><?= $message['message'] ?></span>
+                    <span id="message" class="<?= $message['success'] ? "bg-emerald-200" : "bg-red-200" ?> fixed top-14 left-1/2 -transalate-x-1/2">
+                        <?= $message['message'] ?>
+                    </span>
                 <?php endif ?>
             </section>
-            <section>
-                <form action="<?= $formActions ?>" method="POST">
-                    <input type="hidden" name="_SECURITY_" value="1234567890">
-                    <?php if ($this->id): ?>
-                        <input type="hidden" name="_METHOD_" value="PUT">
-                    <?php endif ?>
+            <div class="flex flex-row">
+                <section class="order-1 basis-1/3">
+                    <form action="<?= $formActions ?>" method="POST">
+                        <input type="hidden" name="_SECURITY_" value="1234567890">
+                        <?php if ($this->id): ?>
+                            <input type="hidden" name="_METHOD_" value="PUT">
+                        <?php endif ?>
 
-                    <input type="text" name="name" value="<?= $result['name'] ?? '' ?>" placeholder="Fullname" autocorrect="off"
-                        autocomplete="off">
+                        <input type="text" name="name" value="<?= $result['name'] ?? '' ?>" placeholder="Fullname" autocorrect="off"
+                            autocomplete="off">
 
-                    <select name="role_id">
-                        <option value="" <?= $this->id ? "" : "selected" ?>>-- Pilih Role --</option>
-                        <?php
-                        $getRoleIDfromResult = $result['role_id'] ?? 0;
-                        ?>
-                        <?php foreach ($stmtRolesResult as $rolesResult): ?>
-                            <option value="<?= $rolesResult['id'] ?? '' ?>" <?= $rolesResult['id'] == $getRoleIDfromResult ? "selected" : "" ?>><?= $rolesResult['name'] ?></option>
-                        <?php endforeach ?>
-                    </select>
+                        <select name="role_id">
+                            <option value="" <?= $this->id ? "" : "selected" ?>>-- Pilih Role --</option>
+                            <?php
+                            $getRoleIDfromResult = $result['role_id'] ?? 0;
+                            ?>
+                            <?php foreach ($stmtRolesResult as $rolesResult): ?>
+                                <option value="<?= $rolesResult['id'] ?? '' ?>" <?= $rolesResult['id'] == $getRoleIDfromResult ? "selected" : "" ?>><?= $rolesResult['name'] ?></option>
+                            <?php endforeach ?>
+                        </select>
 
-                    <input type="text" name="email" value="<?= $result['email'] ?? '' ?>" placeholder="your@email.com"
-                        autocorrect="off" autocomplete="off">
+                        <input type="text" name="email" value="<?= $result['email'] ?? '' ?>" placeholder="your@email.com"
+                            autocorrect="off" autocomplete="off">
 
-                    <input type="text" name="password" value="" placeholder="********" autocorrect="off" autocomplete="off">
+                        <input type="text" name="password" value="" placeholder="********" autocorrect="off" autocomplete="off">
 
-                    <button type="submit"><?= $btnUpdateUsers ?></button>
-                </form>
-            </section>
-            <section>
-                <table>
-                    <?= $this->getUserRolesCols() ?>
-                    <?= $this->getUserRolesRows() ?>
-                </table>
-            </section>
+                        <button type="submit"><?= $btnUpdateUsers ?></button>
+                    </form>
+                </section>
+                <section class="order-2 basis-2/3 p-3">
+                    <table class="w-full">
+                        <?= $this->getUserRolesCols() ?>
+                        <?= $this->getUserRolesRows() ?>
+                    </table>
+                </section>
+            </div>
         </div>
         <script>
             const messageElement = document.getElementById('message');
@@ -154,12 +158,11 @@ use App\Utils\Message;
                 }, 1500);
             }
         </script>
-        <?= Dashboard::get(ob_get_clean(), "Users");
+<?= Dashboard::get(ob_get_clean(), "Users");
     }
 
     public function __destruct()
     {
         $this->connect->close();
     }
-
 } ?>

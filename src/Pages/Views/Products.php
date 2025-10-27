@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Pages\Views;
+
 use App\Config\Database;
 use App\Pages\Layouts\Dashboard;
 use App\Utils\Message;
@@ -55,7 +57,7 @@ use App\Utils\Message;
                 <td style='border: 1px solid black'>{$row['category_id']}</td>
                 <td style='border: 1px solid black'>{$row['description']}</td>
                 <td style='border: 1px solid black'>{$row['price']}</td>
-                <td style='border: 1px solid black'>{$row['image']}</td>
+                <td style='border: 1px solid black'>{$row['photo']}</td>
                 <td style='border: 1px solid black'>{$row['created_at']}</td>
                 <td style='border: 1px solid black'>{$row['updated_at']}</td>
                 <td style='border: 1px solid black'>{$this->compEditAndDeleteButton($row['id'])}</td>
@@ -81,7 +83,7 @@ use App\Utils\Message;
         <form method="GET" action="/dashboard/products/q/<?= $id ?>">
             <button type="submit">EDIT</button>
         </form>
-        <?php
+    <?php
         return ob_get_clean();
     }
 
@@ -105,7 +107,6 @@ use App\Utils\Message;
 
         $message = Message::get();
         ob_start() ?>
-        <?= $_SERVER['DOCUMENT_ROOT'] . '/ProductImage/' ?>
         <div>
             <section>
                 <?php if ($message): ?>
@@ -161,12 +162,11 @@ use App\Utils\Message;
                 }, 5000);
             }
         </script>
-        <?= Dashboard::get(ob_get_clean(), 'Categories');
+<?= Dashboard::get(ob_get_clean(), 'Products');
     }
 
     public function __destruct()
     {
         $this->connect->close();
     }
-
 } ?>

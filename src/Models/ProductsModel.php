@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use App\Config\Database;
@@ -42,7 +43,7 @@ class ProductsModel
         $connect = Database::connect();
 
         try {
-            $stmt = $connect->prepare('INSERT INTO products (name, category_id, description, price, image) VALUES (?, ?, ?, ?, ?)')
+            $stmt = $connect->prepare('INSERT INTO products (name, category_id, description, price, photo) VALUES (?, ?, ?, ?, ?)')
                 ?: throw new \Exception("Gagal mempersiapkan statement.");
 
             $name = strtolower(trim($data['name']));
@@ -82,74 +83,74 @@ class ProductsModel
     {
         $connect = Database::connect();
 
-        // try {
-        $name = $data['name'];
-        $category_id = $data['category_id'];
-        $description = $data['description'];
-        $price = $data['price'];
+        try {
+            $name = $data['name'];
+            $category_id = $data['category_id'];
+            $description = $data['description'];
+            $price = $data['price'];
 
-        var_dump($data['photo']);
+            var_dump($data['photo']);
 
-        if (!$data['photo']) {
-            $query = "UPDATE products SET name = ?, category_id = ?, description = ?, price = ? WHERE id = ?";
+            if (!$data['photo']) {
+                $query = "UPDATE products SET name = ?, category_id = ?, description = ?, price = ? WHERE id = ?";
+                $stmt = $connect->prepare($query) ?: throw new \Exception("Error: gagal membuat statement");
+                $stmt->bind_param("sisii", $name, $category_id, $description, $price, $paramProductsID);
+                $stmt->execute();
+
+                if ($stmt->affected_rows <= 0) {
+                    return Response::failure("Gagal update: tidak ada perubahan data product!");
+                }
+
+                $connect->close();
+                return Response::success("Berhasil update data product!");
+            }
+
+            $queryFindOldPhoto = "SELECT image FROM products WHERE id = ?";
+            $stmtFindOldPhoto = $connect->prepare($queryFindOldPhoto) ?: throw new \Exception("Error: gagal membuat statement");
+            $stmtFindOldPhoto->bind_param('i', $paramProductsID);
+            $stmtFindOldPhoto->execute();
+
+            $resultFindOldPhoto = $stmtFindOldPhoto->get_result();
+            $oldPhoto = $resultFindOldPhoto->fetch_assoc();
+
+            $oldPhotoPath = $_SERVER['DOCUMENT_ROOT'] . $oldPhoto['photo'];
+
+            $query = "UPDATE products SET name = ?, category_id = ?, description = ?, price = ?, photo = ? WHERE id = ?";
             $stmt = $connect->prepare($query) ?: throw new \Exception("Error: gagal membuat statement");
-            $stmt->bind_param("sisii", $name, $category_id, $description, $price, $paramProductsID);
-            $stmt->execute();
 
+            $uploadPhoto = self::uploadPhoto($data['photo']);
+            if (!$uploadPhoto['success']) {
+                return Response::failure($uploadPhoto['message']);
+            }
+
+            $stmt->bind_param("sisisi", $name, $category_id, $description, $price, $uploadPhoto['file'], $paramProductsID);
+
+            $stmt->execute();
             if ($stmt->affected_rows <= 0) {
-                return Response::failure("Gagal update: tidak ada perubahan data product!");
+                return Response::failure("Gagal update: tidak ada perubahan data product [with photo]!");
+            }
+
+            if (file_exists($oldPhotoPath)) {
+                $isDeleteOldPhoto = unlink($oldPhotoPath);
+
+                if (!$isDeleteOldPhoto) {
+                    return Response::failure("Gagal hapus photo lama, tapi Berhasil  Update data product!");
+                }
             }
 
             $connect->close();
             return Response::success("Berhasil update data product!");
-        }
-
-        $queryFindOldPhoto = "SELECT image FROM products WHERE id = ?";
-        $stmtFindOldPhoto = $connect->prepare($queryFindOldPhoto) ?: throw new \Exception("Error: gagal membuat statement");
-        $stmtFindOldPhoto->bind_param('i', $paramProductsID);
-        $stmtFindOldPhoto->execute();
-
-        $resultFindOldPhoto = $stmtFindOldPhoto->get_result();
-        $oldPhoto = $resultFindOldPhoto->fetch_assoc();
-
-        $oldPhotoPath = $_SERVER['DOCUMENT_ROOT'] . $oldPhoto['image'];
-
-        $query = "UPDATE products SET name = ?, category_id = ?, description = ?, price = ?, image = ? WHERE id = ?";
-        $stmt = $connect->prepare($query) ?: throw new \Exception("Error: gagal membuat statement");
-
-        $uploadPhoto = self::uploadPhoto($data['photo']);
-        if (!$uploadPhoto['success']) {
-            return Response::failure($uploadPhoto['message']);
-        }
-
-        $stmt->bind_param("sisisi", $name, $category_id, $description, $price, $uploadPhoto['file'], $paramProductsID);
-
-        $stmt->execute();
-        if ($stmt->affected_rows <= 0) {
-            return Response::failure("Gagal update: tidak ada perubahan data product [with photo]!");
-        }
-
-        if (file_exists($oldPhotoPath)) {
-            $isDeleteOldPhoto = unlink($oldPhotoPath);
-
-            if (!$isDeleteOldPhoto) {
-                return Response::failure("Gagal hapus photo lama, tapi Berhasil  Update data product!");
+        } catch (\mysqli_sql_exception $e) {
+            if (str_contains($e->getMessage(), 'Duplicate entry')) {
+                return Response::failure("Nama product '{$data['name']}' sudah ada.");
             }
+
+            return Response::failure("Kesalahan database: " . $e->getMessage());
+        } catch (\Exception $e) {
+            return Response::failure($e->getMessage());
+        } finally {
+            $connect->close();
         }
-
-        $connect->close();
-        return Response::success("Berhasil update data product!");
-        // } catch (\mysqli_sql_exception $e) {
-        //     if (str_contains($e->getMessage(), 'Duplicate entry')) {
-        //         return Response::failure("Nama product '{$data['name']}' sudah ada.");
-        //     }
-
-        //     return Response::failure("Kesalahan database: " . $e->getMessage());
-        // } catch (\Exception $e) {
-        //     return Response::failure($e->getMessage());
-        // } finally {
-        //     $connect->close();
-        // }
     }
 
     public static function softDelete($paramProductsID)
