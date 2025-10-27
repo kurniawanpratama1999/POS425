@@ -1,6 +1,55 @@
-composer.json
+# =====================================
+# PHP & Composer
+# =====================================
+vendor/
+*/vendor/
 composer.lock
+composer.phar
+
+# =====================================
+# Node.js & NPM
+# =====================================
+node_modules/
+*/node_modules/
 package-lock.json
-package.json
-*/vendor
-*/node_modules
+yarn.lock
+pnpm-lock.yaml
+
+# =====================================
+# Build artifacts
+# =====================================
+dist/
+build/
+public/build/
+public/assets/
+
+# =====================================
+# Environment & konfigurasi sensitif
+# =====================================
+.env
+.env.local
+.env.*.local
+
+# =====================================
+# OS & IDE files
+# =====================================
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# JetBrains (PhpStorm, WebStorm, etc.)
+.idea/
+
+# VSCode
+.vscode/
+
+# =====================================
+# Logs & temporary files
+# =====================================
+*.log
+*.cache
+*.tmp
+*.bak
+*.swp
