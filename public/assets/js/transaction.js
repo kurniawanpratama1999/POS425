@@ -17,6 +17,14 @@ const cardProduct = (data) => {
 
   const sendData = [id, name, category_id, category_name, price];
 
+  return `
+  <tr class='border-b border-slate-200'>
+    <td>${id}</td>
+    <td>${data['name']}</td>
+    <td class='text-right'>${numberToRupiah(data["price"])}</td>
+    <td class='text-right'>0</td>
+  </tr>
+  `;
   return `<button onclick='addProduct(${sendData})' id='btn-product-${id}' class="border p-3 flex flex-col h-fit">
   <span id='product-name'>${data["name"]}</span>
   <span id='product-price'>${numberToRupiah(data["price"])}</span>
@@ -93,22 +101,12 @@ const changeToHTML = () => {
 
   const toHTML = datas.map(
     (v) => `
-  <div class='grid grid-cols-[1fr_10rem_150px] gap-3 italic font-mono mt-2'>
-    <span>${v["name"]}</span>
-    <div class="grid grid-cols-4 text-xs w-40 place-content-center place-items-center">
-      <button onclick="decrementProduct(${
-        v["id"]
-      })" class="block outline outline-white w-5 h-5 rounded-full bg-red-400 font-bold text-white">-</button>
-      <p class="text-center outline-0 border-0 w-10">${v["val"]}</p>
-      <button onclick="incrementProduct(${
-        v["id"]
-      })" class="block outline outline-white w-5 h-5 rounded-full bg-green-400 font-bold text-white">+</button>
-      <button onclick="deleteProduct(${
-        v["id"]
-      })" class="block outline outline-white w-5 h-5 rounded-full bg-red-400 font-bold text-white">o</button>
-    </div> 
-    <span class='text-right'>${numberToRupiah(v["price"])}</span>
-  </div>`
+    <tr>
+      <td>${v["name"]}</td>
+      <td class='text-center'>x${v["val"]}</td>
+      <td class='text-right'>${numberToRupiah(v["price"])}</td>
+      <td class='text-right'>${numberToRupiah(v["price"] * v["val"])}</td>
+    </tr>`
   );
 
   countingProductElement.innerHTML = toHTML.join("\n");

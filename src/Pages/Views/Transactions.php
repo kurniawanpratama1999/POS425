@@ -26,10 +26,10 @@ class Transactions
         }
 
         $this->connect->begin_transaction();
-        
+
         try {
             $queryOrders = "INSERT INTO orders (code, total_amount, payment_amount, change_amount) VALUES (?, ?, ?, ?)";
-            $stmtOrders  = $this->connect->prepare($queryOrders) ?: throw new \Exception("Gagal Membuat statement");
+            $stmtOrders = $this->connect->prepare($queryOrders) ?: throw new \Exception("Gagal Membuat statement");
             $changeAmount = 0;
             $stmtOrders->bind_param('siii', $data['code'], $data['total_amount'], $data['total_amount'], $changeAmount);
             $stmtOrders->execute();
@@ -40,9 +40,9 @@ class Transactions
 
             $orderID = $stmtOrders->insert_id;
 
-            foreach($data['items'] as $items) {
+            foreach ($data['items'] as $items) {
                 $queryOrderDetails = "INSERT INTO order_details (order_id, product_id, quantity, price, subtotal) VALUES (?, ?, ?, ?, ?)";
-                $stmtOrderDetails  = $this->connect->prepare($queryOrderDetails) ?: throw new \Exception("Gagal Membuat statement");
+                $stmtOrderDetails = $this->connect->prepare($queryOrderDetails) ?: throw new \Exception("Gagal Membuat statement");
                 $subtotal = $items['price'] * $items['val'];
                 $stmtOrderDetails->bind_param('iiiii', $orderID, $items['id'], $items['val'], $items['price'], $subtotal);
                 $stmtOrderDetails->execute();
@@ -65,7 +65,108 @@ class Transactions
     {
         ob_start(); ?>
         <div>a</div>
-    <?= ob_get_clean();
+        <?= ob_get_clean();
+    }
+
+    private static function renderTableProducts($resultGetProducts)
+    {
+        ob_start() ?>
+        <div class="basis-3/5 p-3 bg-slate-50">
+            <section id="navigation" class="flex flex-row gap-3 items-center justify-between font-mono">
+                <label for="search" class="flex flex-col rounded bg-slate-200 p-2 text-sm">
+                    <input type="text" name="search" placeholder="Search Product" class="p-1 w-[300px]"
+                        oninput="handleFilteringProducts()">
+                </label>
+
+                <?php if (count($resultGetProducts) > 0): ?>
+                    <?php $mappingOnlyGetCategory = array_map(fn($v) => $v['category_name'], $resultGetProducts); ?>
+                    <label for="category" class="flex flex-col rounded bg-slate-200 p-2 text-sm">
+                        <select name="category" id="category" class="p-1" onchange="handleCategoriesSelected()">
+                            <option value="all" selected>All</option>
+                            <?php foreach (array_unique($mappingOnlyGetCategory) as $category): ?>
+                                <option value="<?= $category ?>"><?= $category ?></option>
+                            <?php endforeach ?>
+                        </select>
+                    </label>
+                <?php endif ?>
+            </section>
+
+            <section class="rounded mt-2 overflow-x-hidden">
+                <table id="product-collection">
+                    <thead class="bg-slate-200">
+                        <tr>
+                            <th class="text-left">id</th>
+                            <th class="text-left">name</th>
+                            <th class="text-right">price</th>
+                            <th class="text-right">stock</th>
+                        </tr>
+                    </thead>
+                    <tbody id="product-list"></tbody>
+                </table>
+            </section>
+        </div>
+        <?php return ob_get_clean();
+    }
+    private static function renderTransactionCollection()
+    {
+        ob_start(); ?>
+        <section class="bg-slate-100 border-l border-slate-300 basis-2/5 grid grid-cols-1 grid-rows-[1fr_auto_auto]">
+            <!-- DEAL TRANSACTION -->
+            <div class="p-2 bg-black/3">
+                <p class="text-sm font-mono">ORD73532035</p>
+                <table id="trx-collection">
+                    <thead>
+                        <tr>
+                            <th class='text-left w-full'>Name</th>
+                            <th class="text-center">qty</th>
+                            <th class="text-right">price</th>
+                            <th class="text-right">total</th>
+                        </tr>
+                    </thead>
+
+                    <!-- JAVASCRIPT ADD PRODUCT -->
+                    <tbody id="product-selected"></tbody>
+                </table>
+            </div>
+
+            <!-- MANUAL INPUT -->
+            <div id="manual-input" class="p-2 flex flex-row gap-3 bg-black/3">
+                <label for="product-id" class="block">
+                    <input type="number" name="product-id" class="bg-slate-100 p-2 block">
+                </label>
+                <button type="button" onclick="add-datas" class="w-full p-2 bg-slate-100">
+                    Add
+                </button>
+            </div>
+
+            <!-- CALC TRANSACTION -->
+            <div class="p-5 text-right">
+                <p id="subtotal" class="flex flex-row justify-between items-center">
+                    <span>SUBTOTAL</span>
+                    <!-- JAVASCRIPT CALC -->
+                    <span id="subtotal-val" class="text-xl font-bold">0</span>
+                </p>
+                <p id="pajak" class="flex flex-row justify-between items-center">
+                    <span>PAJAK</span>
+                    <!-- JAVASCRIPT CALC -->
+                    <span id="pajak-val" class="text-xl font-bold">0</span>
+                </p>
+                <p id="total" class="flex flex-row justify-between items-center">
+                    <span>TOTAL</span>
+                    <!-- JAVASCRIPT CALC -->
+                    <span id="total-val" class="text-3xl font-bold">0</span>
+                </p>
+            </div>
+
+            <!-- BUTTON ACTIONS -->
+            <div class="flex flex-row gap-3 p-2">
+                <!-- JAVASCRIPT CLEAR TRANSACTION -->
+                <button id="clear-transaction" class="px-3 py-2 grow bg-red-400 text-white">Clear</button>
+                <!-- JAVASCRIPT API FETCH POST -->
+                <button id="payment-transaction" class="px-3 py-2 grow bg-blue-400 text-white">Payments</button>
+            </div>
+        </section>
+        <?php return ob_get_clean();
     }
 
     public function render()
@@ -77,57 +178,13 @@ class Transactions
         ob_start(); ?>
         <div class="flex flex-row h-[calc(100dvh-4rem)] bg-slate-100 print:hidden">
 
-            <div class="basis-2/3 p-3 bg-slate-50">
-                <section id="navigation" class="flex flex-row gap-3 items-center justify-center">
-                    <?php if (count($resultGetProducts) > 0): ?>
-                        <button id="all" class="category-all px-5 w-[100px] outline py-2 rounded-md bg-blue-400 text-white outline-blue-400">All</button>
-                        <?php $mappingOnlyGetCategory = array_map(fn($v) => $v['category_name'], $resultGetProducts); ?>
-                        <?php foreach (array_unique($mappingOnlyGetCategory) as $category): ?>
-                            <button id="<?= $category ?>" class="category-<?= $category ?> w-[100px] px-5 py-2 rounded-md outline outline-blue-400 bg-white text-black">
-                                <?= $category ?>
-                            </button>
-                        <?php endforeach ?>
-                    <?php endif ?>
-                </section>
-
-                <section id="select-product" class="grid grid-cols-4 gap-3 p-4 place-content-start"></section>
-            </div>
-
-            <section class="basis-1/3 grid grid-cols-1 grid-rows-[1fr_auto_auto]">
-                <div class="bg-emerald-200 p-2">
-                    <div class="grid grid-cols-[1fr_10rem_150px] gap-3 italic font-mono font-semibold">
-                        <p>Name</p>
-                        <p class="text-center pr-9">qty</p>
-                        <p class="text-right">price</p>
-                    </div>
-                    <div id="counting-product"></div>
-                </div>
-
-                <div class="p-5 text-right">
-                    <p id="subtotal" class="flex flex-row justify-between items-center">
-                        <span>SUBTOTAL</span>
-                        <span id="subtotal-val" class="text-xl font-bold">0</span>
-                    </p>
-                    <p id="pajak" class="flex flex-row justify-between items-center">
-                        <span>PAJAK</span>
-                        <span id="pajak-val" class="text-xl font-bold">0</span>
-                    </p>
-                    <p id="total" class="flex flex-row justify-between items-center">
-                        <span>TOTAL</span>
-                        <span id="total-val" class="text-3xl font-bold">0</span>
-                    </p>
-                </div>
-
-                <div class="flex flex-row gap-3 p-2">
-                    <button id="clear-transaction" class="px-3 py-2 grow bg-red-400 text-white">Clear</button>
-                    <button id="payment-transaction" class="px-3 py-2 grow bg-blue-400 text-white">Payments</button>
-                </div>
-            </section>
+            <?= $this->renderTableProducts($resultGetProducts) ?>
+            <?= $this->renderTransactionCollection() ?>
         </div>
         <script>
             const products = <?= json_encode($resultGetProducts); ?>;
         </script>
-        <script src="/assets/js/transaction.js"></script>
-<?= Dashboard::get(ob_get_clean(), "Transaction");
+        <script src="/assets/js/trx.js"></script>
+        <?= Dashboard::get(ob_get_clean(), "Transaction");
     }
 } ?>

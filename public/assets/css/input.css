@@ -103,6 +103,27 @@
   --font-mono: "JetBrains Mono", monospace;
 }
 
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Hilangkan panah di Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.bg-emerald-100 {
+  background-color: var(--color-slate-200) !important;
+}
+
+tr.bg-emerald-100 td {
+  background-color: var(--color-slate-200);
+  font-style: italic;
+}
+
+
 tr:first-child {
   @apply bg-slate-100 text-black font-mono italic;
 }
@@ -129,6 +150,22 @@ td:last-child div {
   & .wrapper-button button,
   & .wrapper-button a {
     @apply border w-[80px] py-1 text-center;
+  }
+}
+
+#trx-collection {
+  @apply w-full bg-transparent font-mono;
+
+  & tr {
+    @apply bg-transparent;
+  }
+}
+
+ #product-collection {
+  @apply w-full bg-transparent font-mono;
+
+  & tr {
+    @apply bg-transparent;
   }
 }
 
