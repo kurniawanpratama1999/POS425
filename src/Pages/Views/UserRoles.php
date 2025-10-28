@@ -1,8 +1,12 @@
 <?php
+
 namespace App\Pages\Views;
+
 use App\Config\Database;
 use App\Pages\Layouts\Dashboard;
 use App\Utils\Message;
+use DateTime;
+
 ?>
 
 <?php class UserRoles
@@ -18,16 +22,14 @@ use App\Utils\Message;
 
     private function getUserRolesCols()
     {
-        $style = "border: 1px solid black; padding:5px 10px;";
         return "
         <tr>
-            <th style='$style text-align:left;'>row</th>
-            <th style='$style text-align:left;'>name</th>
-            <th style='$style text-align:left;'>created at</th>
-            <th style='$style text-align:left;'>updated at</th>
-            <th style='$style text-align:center;'>actions</th>
-        </tr>
-        ";
+            <th class='text-left'>row</th>
+            <th class='text-left'>name</th>
+            <th class='text-left'>created at</th>
+            <th class='text-left'>updated at</th>
+            <th class='text-center'>actions</th>
+        </tr>";
     }
 
     private function getUserRolesRows()
@@ -36,21 +38,39 @@ use App\Utils\Message;
         $userRolesDatas = $queryDatas->fetch_all(MYSQLI_ASSOC);
 
         if (count($userRolesDatas) < 1) {
-            return "<tr><td colspan='100%' style='border: 1px solid black; padding:5px 10px' align='center'>Empty Data</td></tr>";
+            return "<tr><td colspan='100%' class='text-center'>Empty Data</td></tr>";
         }
 
         $rows = [];
 
         foreach ($userRolesDatas as $key => $row) {
             $key += 1;
+            $no = str_pad($key, 2, "0", STR_PAD_LEFT);
+            $created_at = new DateTime($row['created_at']);
+            $created_at_date = date_format($created_at, 'd/m/Y');
+            $created_at_time = date_format($created_at, 'h:i:s');
+
+            $updated_at = new DateTime($row['updated_at']);
+            $updated_at_date = date_format($updated_at, 'd/m/Y');
+            $updated_at_time = date_format($updated_at, 'h:i:s');
 
             $rows[] = "
             <tr>
-                <td style='border: 1px solid black'>$key</td>
-                <td style='border: 1px solid black'>{$row['name']}</td>
-                <td style='border: 1px solid black'>{$row['created_at']}</td>
-                <td style='border: 1px solid black'>{$row['updated_at']}</td>
-                <td style='border: 1px solid black'>{$this->compEditAndDeleteButton($row['id'])}</td>
+                <td>$key</td>
+                <td>{$row['name']}</td>
+                <td class='text-sm font-mono'>
+                    <div class='flex flex-col'>
+                        <span>$created_at_date</span>
+                        <span>$created_at_time</span>
+                    </div>
+                </td>
+                <td class='text-sm font-mono'>
+                    <div class='flex flex-col'>
+                        <span>$updated_at_date</span>
+                        <span>$updated_at_time</span>
+                    </div>
+                </td>
+                <td><div id='edit-and-delete-{$row['id']}'>{$this->compEditAndDeleteButton($row['id'])}</div></td>
             </tr>
             ";
         }
@@ -63,17 +83,17 @@ use App\Utils\Message;
     {
         ob_start(); ?>
         <!-- DELETE -->
-        <form method="POST" action="/dashboard/user-roles/q/<?= $id ?>">
+        <form id="button-delete-<?= $id ?>" method="POST" action="/dashboard/user-roles/q/<?= $id ?>">
             <input type="hidden" name="_SECURITY_" value="1234567890">
             <input type="hidden" name="_METHOD_" value="DELETE">
             <button type="submit">DELETE</button>
         </form>
 
         <!-- EDIT -->
-        <form method="GET" action="/dashboard/user-roles/q/<?= $id ?>">
+        <form id="button-edit-<?= $id ?>" method="GET" action="/dashboard/user-roles/q/<?= $id ?>">
             <button type="submit">EDIT</button>
         </form>
-        <?php
+    <?php
         return ob_get_clean();
     }
 
@@ -100,22 +120,41 @@ use App\Utils\Message;
                         style="color: <?= $message['success'] ? "green" : "red" ?>; font-weight: bold;"><?= $message['message'] ?></span>
                 <?php endif ?>
             </section>
-            <section>
-                <form action="<?= $formActions ?>" method="POST">
+            <section id="wrapper-add-and-update" class="hidden items-center justify-center fixed top-0 left-0 w-full h-full bg-slate-100/20 backdrop-blur-md">
+                <form id="add-and-update" action="<?= $formActions ?>" method="POST">
+                    <h2 class="text-black text-center text-2xl font-bold font-serif">
+                        <?= !$this->paramUserRolesID ? "TAMBAH" : "EDIT" ?> ROLE
+                    </h2>
                     <input type="hidden" name="_SECURITY_" value="1234567890">
                     <?php if ($this->paramUserRolesID): ?>
                         <input type="hidden" name="_METHOD_" value="PUT">
                     <?php endif ?>
-                    <input type="text" name="name" value="<?= $result['name'] ?? '' ?>" placeholder="Role name"
-                        autocorrect="off" autocomplete="off">
-                    <button type="submit"><?= $btnUpdateRole ?></button>
+                    <label for="name">
+                        <span>Role Name <small>*</small></span>
+                        <input type="text" name="name" value="<?= $result['name'] ?? '' ?>" placeholder="Role name"
+                            autocorrect="off" autocomplete="off">
+                    </label>
+
+                    <div class="wrapper-button">
+                        <a class="bg-red-100 text-red-600" href="/dashboard/user-roles">CANCEL</a>
+                        <button class="<?= !$this->paramUserRolesID ? "bg-emerald-100 text-emerald-600" : "bg-blue-100 text-blue-600" ?>"
+                            type="submit"><?= $btnUpdateRole ?></button>
+                    </div>
                 </form>
             </section>
             <section>
-                <table>
-                    <?= $this->getUserRolesCols() ?>
-                    <?= $this->getUserRolesRows() ?>
-                </table>
+                <div class="max-w-dvw overflow-x-auto">
+                    <div class="flex flex-row justify-between p-2">
+                        <label for="search" id="search" class="bg-slate-100 p-3 rounded">
+                            <input type="text" name="search" placeholder="search role">
+                        </label>
+                        <button onclick="toggleFormAddAndUpdate()" type="button" id="button-new">New Roles</button>
+                    </div>
+                    <table class="w-full">
+                        <?= $this->getUserRolesCols() ?>
+                        <?= $this->getUserRolesRows() ?>
+                    </table>
+                </div>
             </section>
         </div>
         <script>
@@ -125,13 +164,24 @@ use App\Utils\Message;
                     messageElement.remove()
                 }, 1000);
             }
+
+            const elementWrapperAddAndUpdate = document.getElementById('wrapper-add-and-update');
+            const path = window.location.pathname;
+
+            if (path.match("/q/")) {
+                elementWrapperAddAndUpdate.classList.replace("hidden", 'flex');
+            }
+
+            const toggleFormAddAndUpdate = () => {
+                elementWrapperAddAndUpdate.classList.toggle("hidden");
+                elementWrapperAddAndUpdate.classList.toggle("flex");
+            }
         </script>
-        <?= Dashboard::get(ob_get_clean(), 'Roles');
+<?= Dashboard::get(ob_get_clean(), 'Roles');
     }
 
     public function __destruct()
     {
         $this->connect->close();
     }
-
 } ?>

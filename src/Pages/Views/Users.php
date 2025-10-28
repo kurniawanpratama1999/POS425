@@ -41,7 +41,7 @@ use DateTime;
         $userRolesDatas = $queryDatas->fetch_all(MYSQLI_ASSOC);
 
         if (count($userRolesDatas) < 1) {
-            return "<tr><td colspan='100%' style='border: 1px solid black; padding:5px 10px' align='center'>Empty Data</td></tr>";
+            return "<tr><td colspan='100%' class='text-center'>Empty Data</td></tr>";
         }
 
         $rows = [];
@@ -125,7 +125,7 @@ use DateTime;
         <!-- EDIT -->
         <a id="button-edit-<?= $id ?>" href="/dashboard/users/q/<?= $id ?>">EDIT</a>
 
-        <?php
+    <?php
         return ob_get_clean();
     }
 
@@ -237,7 +237,7 @@ use DateTime;
             const elementWrapperAddAndUpdate = document.getElementById('wrapper-add-and-update');
             const path = window.location.pathname;
 
-            if (path.match("/users/q")) {
+            if (path.match("/q/")) {
                 elementWrapperAddAndUpdate.classList.replace("hidden", 'flex');
             }
 
@@ -246,7 +246,7 @@ use DateTime;
                 elementWrapperAddAndUpdate.classList.toggle("flex");
             }
         </script>
-        <?= Dashboard::get(ob_get_clean(), "Users");
+<?= Dashboard::get(ob_get_clean(), "Users");
     }
 
     public function __destruct()

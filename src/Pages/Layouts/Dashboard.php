@@ -6,7 +6,7 @@ class Dashboard
 {
     public static function get($content, $title = "POS425"): string
     {
-        $isBold = fn($path) => str_contains($_SERVER['PATH_INFO'], $path) ? "font-bold" : "";
+        $isBold = fn($path) => str_contains($_SERVER['REQUEST_URI'], $path) ? "font-bold" : "";
 
         ob_start(); ?>
         <!DOCTYPE html>
@@ -20,7 +20,7 @@ class Dashboard
         </head>
 
         <body>
-            <header class="bg-blue-400">
+            <header class="bg-blue-400 print:hidden">
                 <nav class="p-2">
                     <ul class="text-white flex flex-row gap-7 h-12 items-center">
                         <li class="text-xl font-bold"><a href="/dashboard/users">POS425</a></li>
@@ -39,6 +39,6 @@ class Dashboard
         </body>
 
         </html>
-        <?php return ob_get_clean();
+<?php return ob_get_clean();
     }
 } ?>

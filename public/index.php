@@ -1,8 +1,8 @@
 <?php
 require __DIR__ . '/../vendor/autoload.php';
 
-use App\Pages\Layouts\Dashboard;
 use App\Pages\Views\NotFound404;
+use App\Pages\Views\PrintTransaction;
 use Bramus\Router\Router;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['_METHOD_'])) {
@@ -18,9 +18,9 @@ $router->mount('/dashboard', function () use ($router) {
     }
 });
 
+$router->get('/print/{order_id}', function ($order_id) {
+    return (new PrintTransaction())->render($order_id);
+});
 $router->set404([new NotFound404(), "render"]);
 
-
 $router->run();
-
-
