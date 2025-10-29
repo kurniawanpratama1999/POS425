@@ -4,6 +4,7 @@ use App\Controllers\ProductCategoriesControl;
 use App\Pages\Views\ProductCategories;
 
 $router->mount('/product-categories', function () use ($router) {
+    
     $router->get('/', [new ProductCategories(), 'render']);
 
     $router->get(

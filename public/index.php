@@ -1,15 +1,27 @@
 <?php
 require __DIR__ . '/../vendor/autoload.php';
 
+use App\Pages\Views\Login;
+use App\Pages\Views\Documentation;
+use App\controllers\LoginControl;
 use App\Pages\Views\NotFound404;
-use App\Pages\Views\PrintTransaction;
 use Bramus\Router\Router;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['_METHOD_'])) {
     $_SERVER['REQUEST_METHOD'] = strtoupper($_POST['_METHOD_']);
 }
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $router = new Router();
+
+$router->get("/",  [new Login(), 'render']);
+$router->post("/login", fn() => (new LoginControl())->login());
+$router->delete("/logout", fn() => (new LoginControl())->delete());
+
+$router->get('/dokumentasi', [new Documentation(), 'render']);
 
 $router->mount('/dashboard', function () use ($router) {
     $routesPath = __DIR__ . '/Routes';
@@ -18,9 +30,13 @@ $router->mount('/dashboard', function () use ($router) {
     }
 });
 
-$router->get('/print/{order_id}', function ($order_id) {
-    return (new PrintTransaction())->render($order_id);
+$router->before('GET|POST|PUT|DELETE', '/dashboard/.*', function () {
+    if (empty($_SESSION['_USER_'])) {
+        header('Location: /');
+        exit;
+    }
 });
+
 $router->set404([new NotFound404(), "render"]);
 
 $router->run();

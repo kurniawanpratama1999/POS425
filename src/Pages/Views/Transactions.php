@@ -4,7 +4,6 @@ namespace App\Pages\Views;
 
 use App\Config\Database;
 use App\Pages\Layouts\Dashboard;
-use DateTime;
 use mysqli_sql_exception;
 
 class Transactions
@@ -22,6 +21,10 @@ class Transactions
         $input = file_get_contents("php://input");
         $data = json_decode($input, true);
 
+        $orders = $data['orders'];
+        $order_details = $data['order_details'];
+
+
         if (!$data || !is_array($data)) {
             echo json_encode(["success" => false, "message" => "Data tidak valid"]);
         }
@@ -29,10 +32,19 @@ class Transactions
         $this->connect->begin_transaction();
 
         try {
-            $queryOrders = "INSERT INTO orders (code, total_amount, payment_amount, change_amount) VALUES (?, ?, ?, ?)";
+            $queryOrders = "INSERT INTO orders (code, subtotal, tax, total_amount, payment_amount, change_amount) VALUES (?, ?, ?, ?, ?, ?)";
             $stmtOrders = $this->connect->prepare($queryOrders) ?: throw new \Exception("Gagal Membuat statement");
-            $changeAmount = 0;
-            $stmtOrders->bind_param('siii', $data['code'], $data['total_amount'], $data['total_amount'], $changeAmount);
+            $changeAmount = (int) $orders['payment'] - (int) $orders['total'];
+            $data['orders']['change'] = $changeAmount;
+            $stmtOrders->bind_param(
+                'siiiii',
+                $orders['code'],
+                $orders['subtotal'],
+                $orders['tax'],
+                $orders['total'],
+                $orders['payment'],
+                $changeAmount
+            );
             $stmtOrders->execute();
             if ($stmtOrders->affected_rows <= 0) {
                 echo json_encode(["success" => false, "message" => "Gagal Melakukan input ke orders"]);
@@ -41,32 +53,132 @@ class Transactions
 
             $orderID = $stmtOrders->insert_id;
 
-            foreach ($data['items'] as $items) {
-                $queryOrderDetails = "INSERT INTO order_details (order_id, product_id, quantity, price, subtotal) VALUES (?, ?, ?, ?, ?)";
+            foreach ($order_details as $items) {
+                $queryOrderDetails = "INSERT INTO order_details (order_id, product_id, quantity, price, tax, subtotal ,total) VALUES (?, ?, ?, ?, ?, ?, ?)";
                 $stmtOrderDetails = $this->connect->prepare($queryOrderDetails) ?: throw new \Exception("Gagal Membuat statement");
-                $subtotal = $items['price'] * $items['val'];
-                $stmtOrderDetails->bind_param('iiiii', $orderID, $items['id'], $items['val'], $items['price'], $subtotal);
+
+                $stmtOrderDetails->bind_param(
+                    'iiiiiii',
+                    $orderID,
+                    $items['id'],
+                    $items['qty'],
+                    $items['price'],
+                    $items['tax'],
+                    $items['subtotal'],
+                    $items['total'],
+                );
                 $stmtOrderDetails->execute();
                 if ($stmtOrderDetails->affected_rows <= 0) {
                     echo json_encode(["success" => false, "message" => "Gagal Melakukan input ke orders"]);
                     exit;
                 }
-
             }
 
             echo json_encode(["success" => true, "message" => "Data Valid", "data" => $data]);
             $this->connect->commit();
+            exit;
         } catch (mysqli_sql_exception $errSql) {
-            echo json_encode(["success" => false, "message" => "Error: Gagal melakukan input"]);
+            $this->connect->rollback();
+            echo json_encode(["success" => false, "message" => "Error: Gagal melakukan input -> " . $errSql]);
             exit;
         }
     }
 
-    public function print()
+    public function print($code)
     {
+
+        $queryorders = "SELECT * FROM orders WHERE code = ?";
+        $prepareorders = $this->connect->prepare($queryorders);
+        $prepareorders->bind_param('s', $code);
+        $prepareorders->execute();
+
+        $resultOrders = $prepareorders->get_result()->fetch_assoc();
+
+        $ordersID = 1;
+        if ($resultOrders) {
+            $ordersID = $resultOrders['id'];
+        }
+
+        $queryOrderDetails = "SELECT od.*, p.name FROM order_details AS od JOIN products AS P ON od.product_id = p.id WHERE od.order_id = ?";
+        $prepareOrderDetails = $this->connect->prepare($queryOrderDetails);
+        $prepareOrderDetails->bind_param('s', $ordersID);
+        $prepareOrderDetails->execute();
+
+        $resultOrderDetails = $prepareOrderDetails->get_result()->fetch_all(MYSQLI_ASSOC);
+
         ob_start(); ?>
-        <div>a</div>
-        <?= ob_get_clean();
+        <div class="w-[80mm] mx-auto font-mono text-xs">
+            <div class="text-center border-b border-dashed pb-2 mb-2">
+                <h1>TOKO KOPI TARIK</h1>
+                <p>Jl. Merdeka No. 45, Jakarta</p>
+                <p>Telp: 0812-3456-7890</p>
+            </div>
+
+            <!-- Info Transaksi -->
+            <div class="flex justify-between mb-2">
+                <p>ID: <span class="font-semibold"><?= $code ?></span></p>
+                <p>Kasir: <span class="font-semibold">Andi</span></p>
+            </div>
+
+            <div class="flex justify-between border-b border-dashed pb-2 mb-2">
+                <p>Tanggal: <?= $resultOrders['created_at'] ?></p>
+            </div>
+
+            <!-- Daftar Produk -->
+            <table class="w-full **:bg-transparent!">
+                <thead class="border-b border-black">
+                    <tr class="text-left">
+                        <th>Nama</th>
+                        <th class="text-center">Qty</th>
+                        <th class="text-right">Harga</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($resultOrderDetails as $order_detail): ?>
+                        <tr>
+                            <td><?= $order_detail['name'] ?></td>
+                            <td class="text-center"><?= $order_detail['quantity'] ?></td>
+                            <td class="text-right"><?= $order_detail['total'] ?></td>
+                        </tr>
+                    <?php endforeach ?>
+                </tbody>
+            </table>
+
+            <!-- Total -->
+            <div class="border-t border-dashed mt-2 pt-2">
+                <div class="flex justify-between">
+                    <span>Subtotal</span>
+                    <span>Rp <?= number_format($resultOrders['subtotal'], 0, ',', '.') ?></span>
+                </div>
+                <div class="flex justify-between">
+                    <span>PPN (11%)</span>
+                    <span>Rp <?= number_format($resultOrders['tax'], 0, ',', '.') ?></span>
+                </div>
+                <div class="flex justify-between font-bold text-base mt-1">
+                    <span>Total</span>
+                    <span>Rp <?= number_format($resultOrders['total_amount'], 0, ',', '.') ?></span>
+                </div>
+                <div class="flex justify-between mt-1">
+                    <span>Tunai</span>
+                    <span>Rp <?= number_format($resultOrders['payment_amount'], 0, ',', '.') ?></span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Kembali</span>
+                    <span>Rp <?= number_format($resultOrders['change_amount'], 0, ',', '.') ?></span>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-3 border-t border-dashed pt-2">
+                <p>Terima kasih atas kunjungan Anda!</p>
+                <p>Barang yang sudah dibeli tidak dapat dikembalikan.</p>
+                <p class="mt-3 font-bold">*** SEMOGA HARI SENIN TERUS ***</p>
+            </div>
+        </div>
+        <script>
+            window.onload(window.print())
+        </script>
+    <?= Dashboard::get(ob_get_clean(), "PRINT");
     }
 
     private static function renderTableProducts($resultGetProducts)
@@ -106,7 +218,7 @@ class Transactions
                 </table>
             </section>
         </div>
-        <?php return ob_get_clean();
+    <?php return ob_get_clean();
     }
     private static function renderTransactionCollection($runningIDfromOrders)
     {
@@ -114,7 +226,7 @@ class Transactions
         <section class="bg-slate-100 border-l border-slate-300 basis-2/5 grid grid-cols-1 grid-rows-[1fr_auto_auto]">
             <!-- DEAL TRANSACTION -->
             <div class="p-2 bg-black/3">
-                <p class="text-sm font-mono">ID<?= str_pad($runningIDfromOrders['Auto_increment'], 5, "0", STR_PAD_LEFT) ?></p>
+                <p id="runningID" class="text-sm font-mono">ID<?= str_pad($runningIDfromOrders['Auto_increment'], 5, "0", STR_PAD_LEFT) ?></p>
                 <table id="trx-collection">
                     <thead>
                         <tr>
@@ -164,10 +276,10 @@ class Transactions
                 <!-- JAVASCRIPT CLEAR TRANSACTION -->
                 <button id="clear-transaction" class="px-3 py-2 grow bg-red-400 text-white">Clear</button>
                 <!-- JAVASCRIPT API FETCH POST -->
-                <button id="payment-transaction" class="px-3 py-2 grow bg-blue-400 text-white">Payments</button>
+                <button onclick="btnPayment()" id="payment-transaction" class="px-3 py-2 grow bg-blue-400 text-white">Payments</button>
             </div>
         </section>
-        <?php return ob_get_clean();
+    <?php return ob_get_clean();
     }
 
     public function render()
@@ -189,6 +301,6 @@ class Transactions
             const products = <?= json_encode($resultGetProducts); ?>;
         </script>
         <script src="/assets/js/trx.js"></script>
-        <?= Dashboard::get(ob_get_clean(), "Transaction");
+<?= Dashboard::get(ob_get_clean(), "Transaction");
     }
 } ?>

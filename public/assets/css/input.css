@@ -103,14 +103,14 @@
   --font-mono: "JetBrains Mono", monospace;
 }
 
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
 /* Hilangkan panah di Firefox */
-input[type=number] {
+input[type="number"] {
   -moz-appearance: textfield;
 }
 
@@ -122,7 +122,6 @@ tr.bg-emerald-100 td {
   background-color: var(--color-slate-200);
   font-style: italic;
 }
-
 
 tr:first-child {
   @apply bg-slate-100 text-black font-mono italic;
@@ -161,7 +160,7 @@ td:last-child div {
   }
 }
 
- #product-collection {
+#product-collection {
   @apply w-full bg-transparent font-mono;
 
   & tr {

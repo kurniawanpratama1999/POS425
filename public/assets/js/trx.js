@@ -1,90 +1,231 @@
 /* BTN HANDLER */
-const selectedCategory = {value:"all"};
-const searchingProduct = {value:''};
-const datas = {value:products};
+const selectedCategory = { value: "all" };
+const searchingProduct = { value: "" };
+const datas = { value: products };
 const allDatas = [...products];
-const insertProduct = {value:[]};
+const insertProduct = { value: [] };
+const calcTransaction = {
+  value: {
+    subtotal: 0,
+    tax: 0,
+    total: 0,
+  },
+};
 
 const handleCategoriesSelected = () => {
-    const elementSelectCategory = document.querySelector("select[id=category]")
-    selectedCategory.value = elementSelectCategory.value
-    datas.value = [...allDatas];
-    if (selectedCategory.value !== "all") {
-        datas.value = datas.value.filter(data => [data.category_name].some((val) => String(val).toLowerCase().includes(selectedCategory.value)))
-    }
-    renderTableProducts()
-}
+  const elementSelectCategory = document.querySelector("select[id=category]");
+  selectedCategory.value = elementSelectCategory.value;
+  datas.value = [...allDatas];
+  if (selectedCategory.value !== "all") {
+    datas.value = datas.value.filter((data) =>
+      [data.category_name].some((val) =>
+        String(val).toLowerCase().includes(selectedCategory.value)
+      )
+    );
+  }
+  renderTableProducts();
+};
 
-const debounceFilter = {value: null};
+const debounceFilter = { value: null };
 const handleFilteringProducts = () => {
-    const elementSearching = document.querySelector("input[name=search]")
-    searchingProduct.value = elementSearching.value.trim().toLowerCase();
-    
-    if (debounceFilter.value) {
-        clearTimeout(debounceFilter.value)
-    }
+  const elementSearching = document.querySelector("input[name=search]");
+  searchingProduct.value = elementSearching.value.trim().toLowerCase();
 
-    debounceFilter.value = setTimeout(() => {
-        datas.value = [...allDatas];
-        datas.value = datas.value.filter(data => [data.id, data.name].some((val) => String(val).toLowerCase().includes(searchingProduct.value)))
-        renderTableProducts()
-    }, 500)
-}
+  if (debounceFilter.value) {
+    clearTimeout(debounceFilter.value);
+  }
+
+  debounceFilter.value = setTimeout(() => {
+    datas.value = [...allDatas];
+    datas.value = datas.value.filter((data) =>
+      [data.id, data.name].some((val) =>
+        String(val).toLowerCase().includes(searchingProduct.value)
+      )
+    );
+    renderTableProducts();
+  }, 500);
+};
 
 const incrementQty = () => {
-    const elementQty = document.querySelector('input[name=qty]')
-    elementQty.value = Number(elementQty.value) + 1
-}
+  const elementQty = document.querySelector("input[name=qty]");
+  elementQty.value = Number(elementQty.value) + 1;
+};
 
 const decrementQty = () => {
-    const elementQty = document.querySelector('input[name=qty]')
-    if (elementQty.value > 1) {
-        elementQty.value = Number(elementQty.value) - 1
-    }
-}
+  const elementQty = document.querySelector("input[name=qty]");
+  if (elementQty.value > 1) {
+    elementQty.value = Number(elementQty.value) - 1;
+  }
+};
 
 const cancelInsertProduct = () => {
-    document.getElementById('modal-modify-insert-product').remove()
-}
+  document.getElementById("modal-modify-insert-product").remove();
+};
 
 const OkInsertProduct = (data) => {
-    const elementQty = document.querySelector('input[name=qty]')
+  const elementQty = document.querySelector("input[name=qty]");
 
-    const id = Number(data.id);
-    const qty = Number(elementQty.value);
-    const price = Number(data.price);
-    const subtotal = price * qty;
-    const taxPrecentage = 0.11;
-    const tax = subtotal * taxPrecentage;
-    const total = subtotal + tax;
+  const id = Number(data.id);
+  const qty = Number(elementQty.value);
+  const price = Number(data.price);
+  const subtotal = price * qty;
+  const taxPrecentage = 0.11;
+  const tax = subtotal * taxPrecentage;
+  const total = subtotal + tax;
 
-    const findProductWhenInsert = insertProduct.value.find(p => p.id == id);
+  const findProductWhenInsert = insertProduct.value.find((p) => p.id == id);
 
-    if (findProductWhenInsert) {
-        insertProduct.value = insertProduct.value.map(p => p.id == id ? ({...p, qty: qty, subtotal: subtotal, tax: tax, total: total}) : p)
-    } else {
-        insertProduct.value = [...insertProduct.value, {...data, id: id, price: price, qty, subtotal, tax, total}]
-    }
-    
-    document.getElementById('modal-modify-insert-product').remove()
+  if (findProductWhenInsert) {
+    insertProduct.value = insertProduct.value.map((p) =>
+      p.id == id
+        ? { ...p, qty: qty, subtotal: subtotal, tax: tax, total: total }
+        : p
+    );
+  } else {
+    insertProduct.value = [
+      ...insertProduct.value,
+      { ...data, id: id, price: price, qty, subtotal, tax, total },
+    ];
+  }
 
-    renderProductSelected();
-}
+  document.getElementById("modal-modify-insert-product").remove();
 
+  renderProductSelected();
+};
 
+const btnPayment = () => {
+  modalCashPayment(calcTransaction.value);
+  const elementInput = document.querySelector("#modal-cash-payment input");
+  if (elementInput) {
+    elementInput.focus();
+  }
+};
+
+const finish = (ord) => {
+  document.getElementById("modal-cash-payment").remove();
+  window.location.href = `http://localhost:8000/dashboard/transactions/print/${ord}`;
+};
 
 /* ANOTHER FUNCTION */
 const numberToRupiah = (n) => {
-    return new Intl.NumberFormat("id-ID", {currency: "IDR", style: "currency", maximumFractionDigits: 0}).format(n)
-}
+  return new Intl.NumberFormat("id-ID", {
+    currency: "IDR",
+    style: "currency",
+    maximumFractionDigits: 0,
+  }).format(n);
+};
+
+const cancelCheckout = () => {
+  document.getElementById("modal-cash-payment").remove();
+};
+
+const checkout = async () => {
+  try {
+    const modalCashPayment = document.getElementById("modal-cash-payment");
+    const input = modalCashPayment.querySelector("input");
+    const payment = Number(input.value);
+
+    calcTransaction.value = { ...calcTransaction.value, payment };
+
+    const runningID = document
+      .getElementById("runningID")
+      .textContent.replace(/\D/g, "");
+    const date = new Date();
+    const dateformatted =
+      date.getDate().toString().padStart(2, "0") +
+      (date.getMonth() + 1).toString().padStart(2, "0") +
+      date.getFullYear();
+
+    const code = `ORD${dateformatted}${runningID}`;
+    calcTransaction.value = { ...calcTransaction.value, code };
+
+    const sendData = {
+      order_details: insertProduct.value,
+      orders: calcTransaction.value,
+    };
+
+    const fetching = await fetch("/dashboard/transactions/store", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(sendData),
+    });
+
+    const res = await fetching.json();
+
+    if (res.success) {
+      modalChangeAmount(res.data);
+      return;
+    }
+
+    alert(res.message);
+    return;
+  } catch (error) {
+    alert("ERROR: " + error);
+  }
+};
 
 /* MODAL POPUP */
-const modalModifyInsertProduct =  (data, isDelete = false) => {
-    const elementBody = document.body
+const modalChangeAmount = (data) => {
+  const elementModalCashPayment = document.getElementById("modal-cash-payment");
 
-    const sendToOkInsertProduct = JSON.stringify(data);
+  const code = `"${data.orders.code}"`;
+  const elementForm = `
+    <div class='p-3 rounded-md shadow bg-white grid gap-3 text-center'>
+        <div class='grid grid-cols-1 gap-2'>
+            <p class='font-bold text-2xl'>TOTAL KEMBALIAN</p>
+            <p class='font-mono text-4xl'>${numberToRupiah(
+              data.orders.change
+            )}</p>
+        </div>
+        <button type='button' onclick='finish(${code})' class='bg-emerald-400 text-white'>OK</button>
+    </div>
+    `;
 
-    const elementForm = `
+  elementModalCashPayment.innerHTML = elementForm;
+};
+
+const modalCashPayment = (data) => {
+  const elementBody = document.body;
+
+  const elementForm = `
+    <div id='modal-cash-payment' class='fixed top-0 left-0 w-full h-full bg-slate-100/10 backdrop-blur-md flex items-center justify-center'>
+        <div class='p-3 rounded-md shadow bg-white grid gap-3'>
+            <div class='grid grid-cols-[auto_1fr] gap-5'>
+                <div class='flex flex-col gap-2'>
+                    <p>Subtotal</p>
+                    <p>Tax</p>
+                    <p>Total</p>
+                    <p>Cash</p>
+                </div>
+                <div class='flex flex-col gap-2'>
+                    <p> : ${numberToRupiah(data.subtotal)}</p>
+                    <p> : ${numberToRupiah(data.tax)}</p>
+                    <p> : ${numberToRupiah(data.total)}</p>
+                    <p> : <label for='cash'><input class='px-2' type='number' name='cash' id='cash' value='${
+                      data.total
+                    }' autocorrect='off' autocomplete='off'></label></p>
+                </div>
+            </div>
+            <div class='grid grid-cols-2 gap-3'>
+                <button type='button' onclick='cancelCheckout()' class='px-3 py-1 bg-red-300 font-bold text-white'>CANCEL</button>
+                <button type='button' onclick='checkout()' class='px-3 py-1 bg-emerald-300 font-bold text-white'>CHECKOUT</button>
+            </div>
+        </div>
+    </div>
+    `;
+
+  elementBody.insertAdjacentHTML("afterbegin", elementForm);
+};
+
+const modalModifyInsertProduct = (data, isDelete = false) => {
+  const elementBody = document.body;
+
+  const sendToOkInsertProduct = JSON.stringify(data);
+
+  const elementForm = `
     <div id='modal-modify-insert-product' class='fixed top-0 left-0 w-full h-full bg-slate-100/10 backdrop-blur-md flex items-center justify-center'>
         <div class='p-3 rounded-md shadow bg-white grid gap-3'>
             <div class='grid grid-cols-[auto_1fr] gap-5'>
@@ -114,44 +255,48 @@ const modalModifyInsertProduct =  (data, isDelete = false) => {
             </label>
                 
             <div class='grid ${isDelete ? "grid-cols-3" : "grid-cols-2"} gap-3'>
-                ${isDelete ? "<button type='button' onclick='deleteInsertProduct()' class='px-3 py-2 bg-neutral-400 font-bold text-white'>DELETE</button>" : ""}
+                ${
+                  isDelete
+                    ? "<button type='button' onclick='deleteInsertProduct()' class='px-3 py-2 bg-neutral-400 font-bold text-white'>DELETE</button>"
+                    : ""
+                }
                 <button type='button' onclick='cancelInsertProduct()' class='px-3 py-2 bg-red-300 font-bold text-white'>CANCEL</button>
                 <button type='button' id='ok-insert-product' onclick='OkInsertProduct(${sendToOkInsertProduct})' class='px-3 py-2 bg-emerald-300 font-bold text-white'>INSERT</button>
             </div>
         </div>
     </div>
-    `
-    elementBody.insertAdjacentHTML('afterbegin', elementForm)
+    `;
+  elementBody.insertAdjacentHTML("afterbegin", elementForm);
 
-    const getInputQty = document.querySelector('input[name="qty"]')
+  const getInputQty = document.querySelector('input[name="qty"]');
 
-    if (getInputQty) {
-        getInputQty.focus()
-    }
-} 
+  if (getInputQty) {
+    getInputQty.focus();
+  }
+};
 
 /* CREATE DYNAMICS HTML */
 const htmlTableProducts = (data) => {
-    const id = data.id;
-    const category_name = data.category_name;
-    const name = data.name;
-    const price = data.price;
-    const stock = data.stock;
+  const id = data.id;
+  const category_name = data.category_name;
+  const name = data.name;
+  const price = data.price;
+  const stock = data.stock;
 
-    const sendData = JSON.stringify({id, name, category_name, price, stock});
+  const sendData = JSON.stringify({ id, name, category_name, price, stock });
 
-    return `<tr onclick='modalModifyInsertProduct(${sendData})'>
+  return `<tr onclick='modalModifyInsertProduct(${sendData})'>
                 <td>${id}</td>
                 <td>${name}</td>
                 <td>${price}</td>
                 <td>${stock}</td>
-            </tr>`
-}
+            </tr>`;
+};
 
 const htmlProductSelected = (data) => {
-    const sendData = JSON.stringify(data);
+  const sendData = JSON.stringify(data);
 
-    return `
+  return `
     <tr onclick='modalModifyInsertProduct(${sendData}, true)'>
         <td class='align-top'>${data.name}</td>
         <td class='align-top'>x${data.qty}</td>
@@ -159,34 +304,60 @@ const htmlProductSelected = (data) => {
         <td>
             <div class='flex! flex-col! gap-0! text-right items-end!'>
             <p class='font-bold'>${numberToRupiah(data.total)}</p>
-            <p class='text-xs italic font-mono text-nowrap'>(tax) ${numberToRupiah(data.tax)}</p>
+            <p class='text-xs italic font-mono text-nowrap'>(tax) ${numberToRupiah(
+              data.tax
+            )}</p>
             </div>
         </td>
     </tr>
-    `
-}
+    `;
+};
 
 /* RENDERING */
 const renderTableProducts = () => {
-    const elementProductList = document.getElementById("product-list");
-    const mappingProduct = datas.value.length !== 0 
-    ? datas.value.map((product) => htmlTableProducts(product)).join("\n")
-    : `<tr><td colspan='100%' class='text-center'>Kosong loh ya</td></tr>`
+  const elementProductList = document.getElementById("product-list");
+  const mappingProduct =
+    datas.value.length !== 0
+      ? datas.value.map((product) => htmlTableProducts(product)).join("\n")
+      : `<tr><td colspan='100%' class='text-center'>Kosong loh ya</td></tr>`;
 
-    elementProductList.innerHTML = mappingProduct;
-}
+  elementProductList.innerHTML = mappingProduct;
+};
+
+const renderTotalOfTransaction = () => {
+  const elementSubtotalVal = document.getElementById("subtotal-val");
+  const elementPajakVal = document.getElementById("pajak-val");
+  const elementTotalVal = document.getElementById("total-val");
+
+  calcTransaction.value.subtotal = insertProduct.value
+    .map((v) => v.price * v.qty)
+    .reduce((a, b) => a + b);
+  calcTransaction.value.tax = insertProduct.value
+    .map((v) => v.tax)
+    .reduce((a, b) => a + b);
+  calcTransaction.value.total = insertProduct.value
+    .map((v) => v.total)
+    .reduce((a, b) => a + b);
+
+  elementSubtotalVal.innerHTML = numberToRupiah(calcTransaction.value.subtotal);
+  elementPajakVal.innerHTML = numberToRupiah(calcTransaction.value.tax);
+  elementTotalVal.innerHTML = numberToRupiah(calcTransaction.value.total);
+};
+
 const renderProductSelected = () => {
-    const elementProductSelected = document.getElementById('product-selected');
-    const mappingProduct = datas.value.length !== 0 
-    ? insertProduct.value.map((p) => htmlProductSelected(p)).join("\n")
-    : `<tr><td colspan='100%' class='text-center'>Jangan lupa senyum, sapa, salam</td></tr>`
+  const elementProductSelected = document.getElementById("product-selected");
+  const mappingProduct =
+    datas.value.length !== 0
+      ? insertProduct.value.map((p) => htmlProductSelected(p)).join("\n")
+      : `<tr><td colspan='100%' class='text-center'>Jangan lupa senyum, sapa, salam</td></tr>`;
 
-    elementProductSelected.innerHTML = mappingProduct;
-}
+  elementProductSelected.innerHTML = mappingProduct;
+  renderTotalOfTransaction();
+};
 
 const rendering = () => {
-    renderTableProducts()
-}
+  renderTableProducts();
+};
 
 rendering();
 
@@ -199,27 +370,25 @@ document.addEventListener("keydown", (event) => {
   // 1️⃣ ESC >> Tutup modal jika sedang terbuka
   if (event.key === "Escape" && modal) {
     cancelInsertProduct();
-  }
+  } else if (modal) {
+    const inputQty = modal.querySelector("input");
+    if (event.key == "Enter" && document.activeElement == inputQty) {
+      const okButton = modal.querySelector("#ok-insert-product");
+      if (okButton) {
+        okButton.click();
+      }
+    }
 
-  else if (modal) {
-    if (['-', '_', '=', '+'].includes(event.key)){
-        event.preventDefault()
+    if (["-", "_", "=", "+"].includes(event.key)) {
+      event.preventDefault();
 
-        const inputQty = modal.querySelector('input')
-        
-        if (event.key == "Enter" && document.activeElement == inputQty) {
-            const okButton = modal.querySelector("#ok-insert-product");
-            if (okButton) {okButton.click()}
-            
-        }
-        
-        if (['-', '_'].includes(event.key)) {
-            decrementQty();
-        }
-        
-        if (['=', '+'].includes(event.key)) {
-            incrementQty();
-        }
+      if (["-", "_"].includes(event.key)) {
+        decrementQty();
+      }
+
+      if (["=", "+"].includes(event.key)) {
+        incrementQty();
+      }
     }
   }
 
@@ -237,7 +406,10 @@ document.addEventListener("keydown", (event) => {
   }
 
   // Panah Atas/Bawah >> navigasi di tabel produk
-  else if ((event.key === "ArrowUp" || event.key === "ArrowDown") && rows.length > 0) {
+  else if (
+    (event.key === "ArrowUp" || event.key === "ArrowDown") &&
+    rows.length > 0
+  ) {
     event.preventDefault();
 
     // cari elemen yang sedang dipilih

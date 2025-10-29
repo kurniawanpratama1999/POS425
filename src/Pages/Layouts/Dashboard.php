@@ -33,7 +33,12 @@ class Dashboard
                         <li class="menu mr-auto <?= $isBold('/transactions') ?>"><a
                                 href="/dashboard/transactions">TRANSACTIONS</a>
                         </li>
-                        <li><a href="/dashboard/transactions">LOGOUT</a></li>
+                        <li>
+                            <form action="/logout" method="POST">
+                                <input type="hidden" name="_METHOD_" value="DELETE">
+                                <button type="submit">LOGOUT</button>
+                            </form>
+                        </li>
                     </ul>
                 </nav>
             </header>
@@ -62,9 +67,7 @@ class Dashboard
                             }
 
                             window.location.href = collectingMenu[cols].getAttribute('href')
-                        }
-
-                        else if (e.key === 'ArrowLeft') {
+                        } else if (e.key === 'ArrowLeft') {
                             cols--
                             if (cols < minMenu) {
                                 cols = maxMenu
@@ -78,6 +81,6 @@ class Dashboard
         </body>
 
         </html>
-        <?php return ob_get_clean();
+<?php return ob_get_clean();
     }
 } ?>
