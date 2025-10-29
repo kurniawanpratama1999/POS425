@@ -8,6 +8,11 @@ const insertProduct = {value:[]};
 const handleCategoriesSelected = () => {
     const elementSelectCategory = document.querySelector("select[id=category]")
     selectedCategory.value = elementSelectCategory.value
+    datas.value = [...allDatas];
+    if (selectedCategory.value !== "all") {
+        datas.value = datas.value.filter(data => [data.category_name].some((val) => String(val).toLowerCase().includes(selectedCategory.value)))
+    }
+    renderTableProducts()
 }
 
 const debounceFilter = {value: null};
@@ -21,7 +26,7 @@ const handleFilteringProducts = () => {
 
     debounceFilter.value = setTimeout(() => {
         datas.value = [...allDatas];
-        datas.value = datas.value.filter(data => Object.values(data).some((val) => String(val).toLowerCase().includes(searchingProduct.value)))
+        datas.value = datas.value.filter(data => [data.id, data.name].some((val) => String(val).toLowerCase().includes(searchingProduct.value)))
         renderTableProducts()
     }, 500)
 }
@@ -117,6 +122,12 @@ const modalModifyInsertProduct =  (data, isDelete = false) => {
     </div>
     `
     elementBody.insertAdjacentHTML('afterbegin', elementForm)
+
+    const getInputQty = document.querySelector('input[name="qty"]')
+
+    if (getInputQty) {
+        getInputQty.focus()
+    }
 } 
 
 /* CREATE DYNAMICS HTML */
@@ -185,33 +196,47 @@ document.addEventListener("keydown", (event) => {
   const elementSearch = document.querySelector("input[name=search]");
   const rows = document.querySelectorAll("#product-list tr");
 
-  // 1️⃣ ESC → Tutup modal jika sedang terbuka
+  // 1️⃣ ESC >> Tutup modal jika sedang terbuka
   if (event.key === "Escape" && modal) {
     cancelInsertProduct();
   }
 
-  else if (event.key === "ArrowRight" && modal) {
-    incrementQty();
+  else if (modal) {
+    if (['-', '_', '=', '+'].includes(event.key)){
+        event.preventDefault()
+
+        const inputQty = modal.querySelector('input')
+        
+        if (event.key == "Enter" && document.activeElement == inputQty) {
+            const okButton = modal.querySelector("#ok-insert-product");
+            if (okButton) {okButton.click()}
+            
+        }
+        
+        if (['-', '_'].includes(event.key)) {
+            decrementQty();
+        }
+        
+        if (['=', '+'].includes(event.key)) {
+            incrementQty();
+        }
+    }
   }
 
-  else if (event.key === "ArrowLeft" && modal) {
-    decrementQty();
-  }
-
-  // 2️⃣ ENTER → Jika modal terbuka → klik tombol INSERT
+  // Jika modal terbuka >> klik tombol INSERT
   else if (event.key === "Enter" && modal) {
     const insertButton = modal.querySelector("#ok-insert-product");
     if (insertButton) insertButton.click();
   }
 
-  // 3️⃣ ENTER → Jika sedang fokus di input search → buka produk pertama
+  // ENTER kalo sedang fokus di input search >> buka produk pertama
   else if (event.key === "Enter" && document.activeElement === elementSearch) {
     if (rows.length > 0) {
       rows[0].click(); // buka produk pertama
     }
   }
 
-  // 4️⃣ Panah Atas/Bawah → navigasi di tabel produk
+  // Panah Atas/Bawah >> navigasi di tabel produk
   else if ((event.key === "ArrowUp" || event.key === "ArrowDown") && rows.length > 0) {
     event.preventDefault();
 
@@ -234,9 +259,11 @@ document.addEventListener("keydown", (event) => {
     selectedRow.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
-  // 5️⃣ ENTER → jika baris sedang di-highlight, buka modal produk
+  // ENTER kalo baris sedang di-highlight, buka modal produk
   else if (event.key === "Enter" && rows.length > 0) {
     const selected = document.querySelector("#product-list tr.bg-emerald-100");
     if (selected) selected.click();
   }
+
+  /* CTRL KANAN KIRI */
 });

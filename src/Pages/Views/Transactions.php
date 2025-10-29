@@ -4,6 +4,7 @@ namespace App\Pages\Views;
 
 use App\Config\Database;
 use App\Pages\Layouts\Dashboard;
+use DateTime;
 use mysqli_sql_exception;
 
 class Transactions
@@ -107,13 +108,13 @@ class Transactions
         </div>
         <?php return ob_get_clean();
     }
-    private static function renderTransactionCollection()
+    private static function renderTransactionCollection($runningIDfromOrders)
     {
         ob_start(); ?>
         <section class="bg-slate-100 border-l border-slate-300 basis-2/5 grid grid-cols-1 grid-rows-[1fr_auto_auto]">
             <!-- DEAL TRANSACTION -->
             <div class="p-2 bg-black/3">
-                <p class="text-sm font-mono">ORD73532035</p>
+                <p class="text-sm font-mono">ID<?= str_pad($runningIDfromOrders['Auto_increment'], 5, "0", STR_PAD_LEFT) ?></p>
                 <table id="trx-collection">
                     <thead>
                         <tr>
@@ -175,11 +176,14 @@ class Transactions
         $stmtGetProducts = $this->connect->query($queryGetProducts);
         $resultGetProducts = $stmtGetProducts->fetch_all(MYSQLI_ASSOC);
 
+        $queryRunningIDfromOrders = "SHOW TABLE STATUS LIKE 'orders'";
+        $stmtRunningIDfromOrders = $this->connect->query($queryRunningIDfromOrders);
+        $resultRunningIDfromOrders = $stmtRunningIDfromOrders->fetch_assoc();
         ob_start(); ?>
         <div class="flex flex-row h-[calc(100dvh-4rem)] bg-slate-100 print:hidden">
 
             <?= $this->renderTableProducts($resultGetProducts) ?>
-            <?= $this->renderTransactionCollection() ?>
+            <?= $this->renderTransactionCollection($resultRunningIDfromOrders) ?>
         </div>
         <script>
             const products = <?= json_encode($resultGetProducts); ?>;

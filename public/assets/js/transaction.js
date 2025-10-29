@@ -25,10 +25,6 @@ const cardProduct = (data) => {
     <td class='text-right'>0</td>
   </tr>
   `;
-  return `<button onclick='addProduct(${sendData})' id='btn-product-${id}' class="border p-3 flex flex-col h-fit">
-  <span id='product-name'>${data["name"]}</span>
-  <span id='product-price'>${numberToRupiah(data["price"])}</span>
-</button>`;
 };
 
 const productsToHTML = products.map((v) => cardProduct(v));

@@ -24,21 +24,60 @@ class Dashboard
                 <nav class="p-2">
                     <ul class="text-white flex flex-row gap-7 h-12 items-center">
                         <li class="text-xl font-bold"><a href="/dashboard/users">POS425</a></li>
-                        <li class="ml-auto <?= $isBold('/users') ?>"><a href="/dashboard/users">USERS</a></li>
-                        <li class="<?= $isBold('/user-roles') ?>"><a href="/dashboard/user-roles">ROLES</a></li>
-                        <li class="<?= $isBold('/products') ?>"><a href="/dashboard/products">PRODUCTS</a></li>
-                        <li class="<?= $isBold('/product-categories') ?>"><a href="/dashboard/product-categories">CATEGORIES</a>
+                        <li class="menu ml-auto <?= $isBold('/users') ?>"><a href="/dashboard/users">USERS</a></li>
+                        <li class="menu <?= $isBold('/user-roles') ?>"><a href="/dashboard/user-roles">ROLES</a></li>
+                        <li class="menu <?= $isBold('/products') ?>"><a href="/dashboard/products">PRODUCTS</a></li>
+                        <li class="menu <?= $isBold('/product-categories') ?>"><a
+                                href="/dashboard/product-categories">CATEGORIES</a>
                         </li>
-                        <li class="mr-auto <?= $isBold('/transactions') ?>"><a href="/dashboard/transactions">TRANSACTIONS</a>
+                        <li class="menu mr-auto <?= $isBold('/transactions') ?>"><a
+                                href="/dashboard/transactions">TRANSACTIONS</a>
                         </li>
                         <li><a href="/dashboard/transactions">LOGOUT</a></li>
                     </ul>
                 </nav>
             </header>
             <?= $content ?>
+            <script>
+                const collectingMenu = document.querySelectorAll("nav ul li.menu a")
+
+                let cols = 0;
+                const curLocation = window.location.pathname
+                collectingMenu.forEach((cm, k) => {
+                    const href = cm.getAttribute('href')
+                    if (curLocation === href) {
+                        cols = k
+                    }
+                })
+
+                const minMenu = 0;
+                const maxMenu = collectingMenu.length - 1;
+
+                document.addEventListener("keydown", (e) => {
+                    if (e.ctrlKey) {
+                        if (e.key === 'ArrowRight') {
+                            cols++
+                            if (cols > maxMenu) {
+                                cols = minMenu
+                            }
+
+                            window.location.href = collectingMenu[cols].getAttribute('href')
+                        }
+
+                        else if (e.key === 'ArrowLeft') {
+                            cols--
+                            if (cols < minMenu) {
+                                cols = maxMenu
+                            }
+
+                            window.location.href = collectingMenu[cols].getAttribute('href')
+                        }
+                    }
+                })
+            </script>
         </body>
 
         </html>
-<?php return ob_get_clean();
+        <?php return ob_get_clean();
     }
 } ?>
