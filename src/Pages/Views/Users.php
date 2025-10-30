@@ -4,7 +4,6 @@ namespace App\Pages\Views;
 
 use App\Config\Database;
 use App\Pages\Layouts\Dashboard;
-use App\Utils\Message;
 use DateTime;
 ?>
 
@@ -125,7 +124,7 @@ use DateTime;
         <!-- EDIT -->
         <a id="button-edit-<?= $id ?>" href="/dashboard/users/q/<?= $id ?>">EDIT</a>
 
-    <?php
+        <?php
         return ob_get_clean();
     }
 
@@ -149,91 +148,72 @@ use DateTime;
 
         $formActions = !$this->id ? "/dashboard/users" : "/dashboard/users/q/$this->id";
 
-        $message = Message::get();
         ob_start() ?>
         <div>
-            <section>
-                <?php if ($message): ?>
-                    <span id="message"
-                        class="<?= $message['success'] ? "bg-emerald-200" : "bg-red-200" ?> fixed top-14 left-1/2 -transalate-x-1/2">
-                        <?= $message['message'] ?>
-                    </span>
-                <?php endif ?>
-            </section>
-            <div>
-                <section id="wrapper-add-and-update"
-                    class="hidden items-center justify-center fixed top-0 left-0 w-full h-full bg-slate-100/20 backdrop-blur-md">
-                    <form id="add-and-update" action="<?= $formActions ?>" method="POST">
-                        <h2 class="text-black text-center text-2xl font-bold font-serif">
-                            <?= !$this->id ? "TAMBAH" : "EDIT" ?> USER
-                        </h2>
-                        <input type="hidden" name="_SECURITY_" value="1234567890">
-                        <?php if ($this->id): ?>
-                            <input type="hidden" name="_METHOD_" value="PUT">
-                        <?php endif ?>
+            <section id="wrapper-add-and-update"
+                class="hidden items-center justify-center fixed top-0 left-0 w-full h-full bg-slate-100/20 backdrop-blur-md">
+                <form id="add-and-update" action="<?= $formActions ?>" method="POST">
+                    <h2 class="text-black text-center text-2xl font-bold font-serif">
+                        <?= !$this->id ? "TAMBAH" : "EDIT" ?> USER
+                    </h2>
+                    <input type="hidden" name="_SECURITY_" value="1234567890">
+                    <?php if ($this->id): ?>
+                        <input type="hidden" name="_METHOD_" value="PUT">
+                    <?php endif ?>
 
-                        <label for="name">
-                            <span>Full Name <small>*</small></span>
-                            <input type="text" name="name" value="<?= $result['name'] ?? '' ?>" placeholder="Fullname"
-                                autocorrect="off" autocomplete="off">
-                        </label>
+                    <label for="name">
+                        <span>Full Name <small>*</small></span>
+                        <input type="text" name="name" value="<?= $result['name'] ?? '' ?>" placeholder="Fullname"
+                            autocorrect="off" autocomplete="off">
+                    </label>
 
-                        <label for="role_id">
-                            <span>Role Name <small>*</small></span>
-                            <select name="role_id">
-                                <option value="" <?= $this->id ? "" : "selected" ?>>-- Pilih Role --</option>
-                                <?php
-                                $getRoleIDfromResult = $result['role_id'] ?? 0;
-                                ?>
-                                <?php foreach ($stmtRolesResult as $rolesResult): ?>
-                                    <option value="<?= $rolesResult['id'] ?? '' ?>" <?= $rolesResult['id'] == $getRoleIDfromResult ? "selected" : "" ?>><?= $rolesResult['name'] ?></option>
-                                <?php endforeach ?>
-                            </select>
-                        </label>
+                    <label for="role_id">
+                        <span>Role Name <small>*</small></span>
+                        <select name="role_id">
+                            <option value="" <?= $this->id ? "" : "selected" ?>>-- Pilih Role --</option>
+                            <?php
+                            $getRoleIDfromResult = $result['role_id'] ?? 0;
+                            ?>
+                            <?php foreach ($stmtRolesResult as $rolesResult): ?>
+                                <option value="<?= $rolesResult['id'] ?? '' ?>" <?= $rolesResult['id'] == $getRoleIDfromResult ? "selected" : "" ?>><?= $rolesResult['name'] ?></option>
+                            <?php endforeach ?>
+                        </select>
+                    </label>
 
-                        <label for="email">
-                            <span>Email <small>*</small></span>
-                            <input type="text" name="email" value="<?= $result['email'] ?? '' ?>" placeholder="your@email.com"
-                                autocorrect="off" autocomplete="off">
-                        </label>
+                    <label for="email">
+                        <span>Email <small>*</small></span>
+                        <input type="text" name="email" value="<?= $result['email'] ?? '' ?>" placeholder="your@email.com"
+                            autocorrect="off" autocomplete="off">
+                    </label>
 
-                        <label for="password">
-                            <span>Password <small>*</small></span>
-                            <input type="text" name="password" value="" placeholder="********" autocorrect="off"
-                                autocomplete="off">
-                        </label>
+                    <label for="password">
+                        <span>Password <small>*</small></span>
+                        <input type="text" name="password" value="" placeholder="********" autocorrect="off" autocomplete="off">
+                    </label>
 
-                        <div class="wrapper-button">
-                            <a class="bg-red-100 text-red-600" href="/dashboard/users">CANCEL</a>
-                            <button class="<?= !$this->id ? "bg-emerald-100 text-emerald-600" : "bg-blue-100 text-blue-600" ?>"
-                                type="submit"><?= $btnUpdateUsers ?></button>
-                        </div>
-                    </form>
-                </section>
-                <section>
-                    <div class="max-w-dvw overflow-x-auto">
-                        <div class="flex flex-row justify-between p-2">
-                            <label for="search" id="search" class="bg-slate-100 p-3 rounded">
-                                <input type="text" name="search" placeholder="search user">
-                            </label>
-                            <button onclick="toggleFormAddAndUpdate()" type="button" id="button-new">New User</button>
-                        </div>
-                        <table class="w-full">
-                            <?= $this->getUserRolesCols() ?>
-                            <?= $this->getUserRolesRows() ?>
-                        </table>
+                    <div class="wrapper-button">
+                        <a class="bg-red-100 text-red-600" href="/dashboard/users">CANCEL</a>
+                        <button class="<?= !$this->id ? "bg-emerald-100 text-emerald-600" : "bg-blue-100 text-blue-600" ?>"
+                            type="submit"><?= $btnUpdateUsers ?></button>
                     </div>
-                </section>
-            </div>
+                </form>
+            </section>
+            <section>
+                <div class="max-w-dvw overflow-x-auto">
+                    <div class="flex flex-row justify-between p-2">
+                        <label for="search" id="search" class="bg-slate-100 p-3 rounded">
+                            <input type="text" name="search" placeholder="search user">
+                        </label>
+                        <button onclick="toggleFormAddAndUpdate()" type="button" id="button-new">New User</button>
+                    </div>
+                    <table class="w-full">
+                        <?= $this->getUserRolesCols() ?>
+                        <?= $this->getUserRolesRows() ?>
+                    </table>
+                </div>
+            </section>
         </div>
         <script>
-            const messageElement = document.getElementById('message');
-            if (messageElement) {
-                setTimeout(() => {
-                    messageElement.remove()
-                }, 1500);
-            }
-
             const elementWrapperAddAndUpdate = document.getElementById('wrapper-add-and-update');
             const path = window.location.pathname;
 
@@ -246,7 +226,7 @@ use DateTime;
                 elementWrapperAddAndUpdate.classList.toggle("flex");
             }
         </script>
-<?= Dashboard::get(ob_get_clean(), "Users");
+        <?= Dashboard::get(ob_get_clean(), "Users");
     }
 
     public function __destruct()

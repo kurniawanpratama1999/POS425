@@ -3,7 +3,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use App\Pages\Views\Login;
 use App\Pages\Views\Documentation;
-use App\controllers\LoginControl;
+use App\Controllers\LoginControl;
 use App\Pages\Views\NotFound404;
 use Bramus\Router\Router;
 
@@ -17,7 +17,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 $router = new Router();
 
-$router->get("/",  [new Login(), 'render']);
+$router->get("/", [new Login(), 'render']);
 $router->post("/login", fn() => (new LoginControl())->login());
 $router->delete("/logout", fn() => (new LoginControl())->delete());
 

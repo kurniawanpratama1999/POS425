@@ -4,7 +4,6 @@ namespace App\Pages\Views;
 
 use App\Config\Database;
 use App\Pages\Layouts\Dashboard;
-use App\Utils\Message;
 use DateTime;
 
 ?>
@@ -131,7 +130,7 @@ use DateTime;
         <form id="button-edit-<?= $id ?>" method="GET" action="/dashboard/products/q/<?= $id ?>">
             <button type="submit">EDIT</button>
         </form>
-    <?php
+        <?php
         return ob_get_clean();
     }
 
@@ -153,16 +152,10 @@ use DateTime;
         $btnUpdateProducts = !$this->paramProductsID ? "ADD PRODUCT" : "EDIT PRODUCT";
         $formActions = !$this->paramProductsID ? "/dashboard/products" : "/dashboard/products/q/$this->paramProductsID";
 
-        $message = Message::get();
         ob_start() ?>
         <div>
-            <section>
-                <?php if ($message): ?>
-                    <span id="message"
-                        style="color: <?= $message['success'] ? "green" : "red" ?>; font-weight: bold;"><?= $message['message'] ?></span>
-                <?php endif ?>
-            </section>
-            <section id="wrapper-add-and-update" class="hidden items-center justify-center fixed top-0 left-0 w-full h-full bg-slate-100/20 backdrop-blur-md">
+            <section id="wrapper-add-and-update"
+                class="hidden items-center justify-center fixed top-0 left-0 w-full h-full bg-slate-100/20 backdrop-blur-md">
                 <form id="add-and-update" action="<?= $formActions ?>" method="POST" enctype="multipart/form-data">
                     <h2 class="text-black text-center text-2xl font-bold font-serif">
                         <?= !$this->paramProductsID ? "TAMBAH" : "EDIT" ?> PRODUCT
@@ -212,7 +205,8 @@ use DateTime;
 
                     <div class="wrapper-button">
                         <a class="bg-red-100 text-red-600" href="/dashboard/products">CANCEL</a>
-                        <button class="<?= !$this->paramProductsID ? "bg-emerald-100 text-emerald-600" : "bg-blue-100 text-blue-600" ?>"
+                        <button
+                            class="<?= !$this->paramProductsID ? "bg-emerald-100 text-emerald-600" : "bg-blue-100 text-blue-600" ?>"
                             type="submit"><?= $btnUpdateProducts ?></button>
                     </div>
                 </form>
@@ -233,13 +227,6 @@ use DateTime;
             </section>
         </div>
         <script>
-            const messageElement = document.getElementById('message');
-            if (messageElement) {
-                setTimeout(() => {
-                    messageElement.remove()
-                }, 5000);
-            }
-
             const elementWrapperAddAndUpdate = document.getElementById('wrapper-add-and-update');
             const path = window.location.pathname;
 
@@ -252,7 +239,7 @@ use DateTime;
                 elementWrapperAddAndUpdate.classList.toggle("flex");
             }
         </script>
-<?= Dashboard::get(ob_get_clean(), 'Products');
+        <?= Dashboard::get(ob_get_clean(), 'Products');
     }
 
     public function __destruct()

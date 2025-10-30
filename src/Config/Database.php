@@ -8,7 +8,7 @@ class Database
     {
         $HOST = 'localhost';
         $USER = "root";
-        $PASS = "";
+        $PASS = "januari";
         $DB = "testing";
 
         $conn = mysqli_connect($HOST, $USER, $PASS, $DB);

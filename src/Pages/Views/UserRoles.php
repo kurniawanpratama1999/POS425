@@ -4,9 +4,7 @@ namespace App\Pages\Views;
 
 use App\Config\Database;
 use App\Pages\Layouts\Dashboard;
-use App\Utils\Message;
 use DateTime;
-
 ?>
 
 <?php class UserRoles
@@ -93,7 +91,7 @@ use DateTime;
         <form id="button-edit-<?= $id ?>" method="GET" action="/dashboard/user-roles/q/<?= $id ?>">
             <button type="submit">EDIT</button>
         </form>
-    <?php
+        <?php
         return ob_get_clean();
     }
 
@@ -111,16 +109,10 @@ use DateTime;
         $btnUpdateRole = !$this->paramUserRolesID ? "ADD ROLE" : "EDIT ROLE";
         $formActions = !$this->paramUserRolesID ? "/dashboard/user-roles" : "/dashboard/user-roles/q/$this->paramUserRolesID";
 
-        $message = Message::get();
         ob_start() ?>
         <div>
-            <section>
-                <?php if ($message): ?>
-                    <span id="message"
-                        style="color: <?= $message['success'] ? "green" : "red" ?>; font-weight: bold;"><?= $message['message'] ?></span>
-                <?php endif ?>
-            </section>
-            <section id="wrapper-add-and-update" class="hidden items-center justify-center fixed top-0 left-0 w-full h-full bg-slate-100/20 backdrop-blur-md">
+            <section id="wrapper-add-and-update"
+                class="hidden items-center justify-center fixed top-0 left-0 w-full h-full bg-slate-100/20 backdrop-blur-md">
                 <form id="add-and-update" action="<?= $formActions ?>" method="POST">
                     <h2 class="text-black text-center text-2xl font-bold font-serif">
                         <?= !$this->paramUserRolesID ? "TAMBAH" : "EDIT" ?> ROLE
@@ -137,7 +129,8 @@ use DateTime;
 
                     <div class="wrapper-button">
                         <a class="bg-red-100 text-red-600" href="/dashboard/user-roles">CANCEL</a>
-                        <button class="<?= !$this->paramUserRolesID ? "bg-emerald-100 text-emerald-600" : "bg-blue-100 text-blue-600" ?>"
+                        <button
+                            class="<?= !$this->paramUserRolesID ? "bg-emerald-100 text-emerald-600" : "bg-blue-100 text-blue-600" ?>"
                             type="submit"><?= $btnUpdateRole ?></button>
                     </div>
                 </form>
@@ -158,13 +151,6 @@ use DateTime;
             </section>
         </div>
         <script>
-            const messageElement = document.getElementById('message');
-            if (messageElement) {
-                setTimeout(() => {
-                    messageElement.remove()
-                }, 1000);
-            }
-
             const elementWrapperAddAndUpdate = document.getElementById('wrapper-add-and-update');
             const path = window.location.pathname;
 
@@ -177,7 +163,7 @@ use DateTime;
                 elementWrapperAddAndUpdate.classList.toggle("flex");
             }
         </script>
-<?= Dashboard::get(ob_get_clean(), 'Roles');
+        <?= Dashboard::get(ob_get_clean(), 'Roles');
     }
 
     public function __destruct()

@@ -30,7 +30,8 @@ class Message
         if (!empty($_SESSION['_MESSAGE_'])) {
             $msg = $_SESSION['_MESSAGE_'];
             unset($_SESSION['_MESSAGE_']);
-            return $msg;
+            $color = $msg['success'] ? 'bg-emerald-300' : 'bg-red-300';
+            return "<p id='message' class='fixed text-center top-10 left-1/2 -translate-x-1/2 p-2 w-[300px] $color' text-white font-serif>{$msg['message']}</p>";
         }
 
         return null;
